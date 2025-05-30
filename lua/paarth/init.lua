@@ -1,6 +1,10 @@
-require("paarth.remap")
+-- Set leader key first
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
+-- Load configurations
 require("paarth.set")
--- Add this to ~/.config/nvim/lua/paarth/init.lua
+require("paarth.remap")
 
 -- Visual-multi settings
 vim.g.VM_default_mappings = 0

@@ -1,9 +1,4 @@
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
-
 -- [[ Install `lazy.nvim` plugin manager ]]
---    https://github.com/folke/lazy.nvim
---    `:help lazy.nvim.txt` for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system {
@@ -11,7 +6,7 @@ if not vim.loop.fs_stat(lazypath) then
     'clone',
     '--filter=blob:none',
     'https://github.com/folke/lazy.nvim.git',
-    '--branch=stable', -- latest stable release
+    '--branch=stable',
     lazypath,
   }
 end
@@ -28,37 +23,16 @@ require("paarth")
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
-  "zbirenbaum/copilot.lua",
+  { 'akinsho/git-conflict.nvim', version = "*",    config = true },
   -- Git related plugins
-  'mg979/vim-visual-multi',
-  'chrisbra/csv.vim',
-  'sindrets/diffview.nvim',
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
-  'ellisonleao/gruvbox.nvim',
+  'sindrets/diffview.nvim',
+  
+  -- Utility plugins
+  'mg979/vim-visual-multi',
+  'chrisbra/csv.vim',
   'jbyuki/instant.nvim',
-  {
-  "olimorris/onedarkpro.nvim",
-  priority = 1000, -- Ensure it loads first
-  },
-  {
-    "catppuccin/nvim",
-    name = "catppuccin",
-    priority = 1000
-  },
-  {
-    "baliestri/aura-theme",
-    lazy = false,
-    priority = 1000,
-    config = function(plugin)
-      vim.opt.rtp:append(plugin.dir .. "/packages/neovim")
-      vim.cmd([[colorscheme aura-dark]])
-    end
-  },
-  { "bluz71/vim-moonfly-colors",   name = "moonfly",     lazy = false, priority = 1000 },
-  {
-    'rose-pine/neovim',
-  },
   {
     "fatih/vim-go",
     ft = "go",
@@ -72,38 +46,6 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>ga', ':GoImports<CR>', { silent = true })
     end,
   },
-  {
-    "neovim/nvim-lspconfig",
-    config = function()
-      require('lspconfig').gopls.setup({
-        settings = {
-          gopls = {
-            analyses = {
-              unusedparams = true,
-            },
-            staticcheck = true,
-            usePlaceholders = true,
-            completeUnimported = true,
-          },
-        },
-        on_attach = function(client, bufnr)
-          -- Import on save
-          vim.api.nvim_create_autocmd("BufWritePre", {
-            pattern = "*.go",
-            callback = function()
-              vim.lsp.buf.format()
-            end,
-          })
-
-          -- Key mappings for code actions (including imports)
-          vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, { buffer = bufnr })
-          vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { buffer = bufnr })
-          vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, { buffer = bufnr })
-        end,
-      })
-    end,
-  },
-  { 'projekt0n/github-nvim-theme', name = 'github-theme' },
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
   {
@@ -130,7 +72,12 @@ require('lazy').setup({
       'folke/neodev.nvim',
     },
   },
-
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  },
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -191,11 +138,14 @@ require('lazy').setup({
 
       -- Key mappings
       vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<CR>', { silent = true })
-      vim.keymap.set('n', '<leader>f', ':NvimTreeFocus<CR>', { silent = true })
+      vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>', { silent = true })
+      vim.keymap.set('n', '<C-b>', ':NvimTreeToggle<CR>', { silent = true })
+      vim.keymap.set('n', '<leader>tf', ':NvimTreeFocus<CR>', { silent = true })
+      vim.keymap.set('n', '<leader>tF', ':NvimTreeFindFile<CR>', { silent = true })
     end,
   },
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim',  opts = {} },
+  { 'folke/which-key.nvim',        opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -235,14 +185,6 @@ require('lazy').setup({
     },
   },
 
-  {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
-    priority = 1000,
-    config = function()
-      vim.cmd.colorscheme 'onedark'
-    end,
-  },
 
   {
     -- Set lualine as statusline
@@ -349,62 +291,6 @@ require('lazy').setup({
   -- { import = 'custom.plugins' },
 }, {})
 
--- [[ Setting options ]]
--- See `:help vim.o`
--- NOTE: You can change these options as you wish!
--- Multiple ways to toggle the file explorer
-vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>', { silent = true })     -- Toggle with Ctrl+n
-vim.keymap.set('n', '<C-b>', ':NvimTreeToggle<CR>', { silent = true })     -- Toggle with Ctrl+b (VS Code style)
-vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<CR>', { silent = true }) -- Toggle with leader+e
-
--- Additional useful commands
-vim.keymap.set('n', '<leader>f', ':NvimTreeFocus<CR>', { silent = true })    -- Focus the explorer
-vim.keymap.set('n', '<leader>F', ':NvimTreeFindFile<CR>', { silent = true }) -- Find current file in explorer
-
--- To close when opening files
-require("nvim-tree").setup({
-  actions = {
-    open_file = {
-      quit_on_open = true -- Automatically close when opening files
-    },
-  },
-})
--- Set highlight on search
-vim.o.hlsearch = false
-
--- Make line numbers default
-vim.wo.number = true
-
--- Enable mouse mode
-vim.o.mouse = 'a'
-
--- Sync clipboard between OS and Neovim.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.o.clipboard = 'unnamedplus'
-
--- Enable break indent
-vim.o.breakindent = true
-
--- Save undo history
-vim.o.undofile = true
-
--- Case-insensitive searching UNLESS \C or capital in search
-vim.o.ignorecase = true
-vim.o.smartcase = true
-
--- Keep signcolumn on by default
-vim.wo.signcolumn = 'yes'
-
--- Decrease update time
-vim.o.updatetime = 250
-vim.o.timeoutlen = 300
-
--- Set completeopt to have a better completion experience
-vim.o.completeopt = 'menuone,noselect'
-
--- NOTE: You should make sure your terminal supports this
-vim.o.termguicolors = true
 
 -- [[ Basic Keymaps ]]
 
@@ -419,7 +305,7 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
+vim.keymap.set('n', '<leader>df', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- [[ Highlight on yank ]]
@@ -603,7 +489,7 @@ local on_attach = function(_, bufnr)
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  nmap('<leader>K', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -647,7 +533,18 @@ local servers = {
   clangd = {},
   phpactor = {
   },
-  gopls = {},
+  gopls = {
+    settings = {
+      gopls = {
+        analyses = {
+          unusedparams = true,
+        },
+        staticcheck = true,
+        usePlaceholders = true,
+        completeUnimported = true,
+      },
+    },
+  },
   pyright = {},
   rust_analyzer = {},
   tsserver = {},
@@ -737,66 +634,14 @@ cmp.setup {
   },
 }
 
-require("catppuccin").setup({
-  flavour = "frappe", -- latte, frappe, macchiato, mocha
-  background = {      -- :h background
-    light = "latte",
-    dark = "mocha",
-  },
-  transparent_background = false, -- disables setting the background color.
-  show_end_of_buffer = false,     -- shows the '~' characters after the end of buffers
-  term_colors = false,            -- sets terminal colors (e.g. `g:terminal_color_0`)
-  dim_inactive = {
-    enabled = false,              -- dims the background color of inactive window
-    shade = "dark",
-    percentage = 0.15,            -- percentage of the shade to apply to the inactive window
-  },
-  no_italic = false,              -- Force no italic
-  no_bold = false,                -- Force no bold
-  no_underline = false,           -- Force no underline
-  styles = {                      -- Handles the styles of general hi groups (see `:h highlight-args`):
-    comments = { "italic" },      -- Change the style of comments
-    conditionals = { "italic" },
-    loops = {},
-    functions = {},
-    keywords = {},
-    strings = {},
-    variables = {},
-    numbers = {},
-    booleans = {},
-    properties = {},
-    types = {},
-    operators = {},
-  },
-  color_overrides = {},
-  custom_highlights = {},
-  integrations = {
-    cmp = true,
-    gitsigns = true,
-    nvimtree = true,
-    treesitter = true,
-    notify = false,
-    mini = {
-      enabled = true,
-      indentscope_color = "",
-    },
-    -- For more plugins integrations please scroll down (https://github.com/catppuccin/nvim#integrations)
-  },
-})
-
--- setup must be called before loading
---vim.cmd.colorscheme "catppuccin"
-function ColorMyPencils(color)
-  color = color or "onedark"
+-- Colorscheme setup
+local function ColorMyPencils(color)
+  color = color or "tokyonight-storm"
   vim.cmd.colorscheme(color)
 
+  -- Optional transparent background
   vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
   vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
 end
 
 ColorMyPencils()
-
-
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et

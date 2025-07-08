@@ -48,3 +48,5 @@ vim.g.VM_highlight_matches = 'underline'     -- highlight matching words
 vim.g.VM_silent_exit = 1                     -- silent exit from visual-multi mode
 
 -- Add any other paarth/ configurations below
+require("paarth.fugitive")
+require("paarth.php")

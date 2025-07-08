@@ -22,13 +22,12 @@ require("paarth")
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
-  -- NOTE: First, some plugins that don't require any configuration
-  { 'akinsho/git-conflict.nvim', version = "*",    config = true },
+ {'akinsho/git-conflict.nvim', version = "*", config = true},
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
   'sindrets/diffview.nvim',
-  
+  { "rose-pine/neovim", name = "rose-pine" },
   -- Utility plugins
   'mg979/vim-visual-multi',
   'chrisbra/csv.vim',
@@ -103,6 +102,16 @@ require('lazy').setup({
       vim.g.loaded_netrw = 1
       vim.g.loaded_netrwPlugin = 1
 
+      -- Set up nvim-web-devicons FIRST
+      require('nvim-web-devicons').setup {
+        -- Enable default icons
+        default = true,
+        -- Enable color icons
+        color_icons = true,
+        -- Strict matching
+        strict = true
+      }
+
       require("nvim-tree").setup({
         sort_by = "case_sensitive",
         view = {
@@ -118,6 +127,29 @@ require('lazy').setup({
               folder_arrow = true,
               git = true,
             },
+            glyphs = {
+              default = "",
+              symlink = "",
+              folder = {
+                arrow_closed = "",
+                arrow_open = "",
+                default = "",
+                open = "",
+                empty = "",
+                empty_open = "",
+                symlink = "",
+                symlink_open = "",
+              },
+              git = {
+                unstaged = "✗",
+                staged = "✓",
+                unmerged = "",
+                renamed = "➜",
+                untracked = "★",
+                deleted = "",
+                ignored = "◌"
+              }
+            }
           },
         },
         filters = {
@@ -193,7 +225,7 @@ require('lazy').setup({
     -- See `:help lualine.txt`
     opts = {
       options = {
-        icons_enabled = false,
+        icons_enabled = true,
         theme = 'onedark',
         component_separators = '|',
         section_separators = '',
@@ -258,11 +290,11 @@ require('lazy').setup({
         auto_trigger = true,
         debounce = 75,
         keymap = {
-          accept = "<M-l>",
+          accept = "<C-y>",
           accept_word = false,
           accept_line = false,
-          next = "<M-]>",
-          prev = "<M-[>",
+          next = "<C-n>",
+          prev = "<C-p>",
           dismiss = "<C-]>",
         },
       },
@@ -508,7 +540,7 @@ end
 
 -- document existing key chains
 require('which-key').register {
-  ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
+  ['<leader>c'] = { name = '[C]ode / [C]onflict', _ = 'which_key_ignore' },
   ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
   ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
   ['<leader>h'] = { name = 'More git', _ = 'which_key_ignore' },
@@ -572,16 +604,6 @@ local mason_lspconfig = require 'mason-lspconfig'
 
 mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
-}
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
 }
 
 -- [[ Configure nvim-cmp ]]

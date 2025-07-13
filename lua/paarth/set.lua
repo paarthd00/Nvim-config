@@ -44,3 +44,7 @@ vim.opt.breakindent = true
 vim.opt.completeopt = 'menuone,noselect'
 vim.opt.cmdheight = 0
 vim.opt.showmode = false
+
+-- Disable "Press ENTER or type command to continue" messages
+vim.opt.shortmess:append("c")
+vim.opt.shortmess:append("S")

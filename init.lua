@@ -574,6 +574,28 @@ local servers = {
   rust_analyzer = {},
   ts_ls = {},
   html = { filetypes = { 'html', 'php', 'twig', 'hbs' } },
+  
+  -- Java
+  jdtls = {},
+  
+  -- Angular/TypeScript (additional)
+  angularls = {},
+  
+  -- React (optional - ts_ls already handles React)
+  -- eslint = {},
+  
+  -- YAML
+  yamlls = {
+    settings = {
+      yaml = {
+        keyOrdering = false,
+        format = {
+          enable = true,
+        },
+        validate = true,
+      },
+    },
+  },
 
   lua_ls = {
     Lua = {

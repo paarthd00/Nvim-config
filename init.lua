@@ -59,10 +59,6 @@ require('lazy').setup({
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
-      -- Automatically install LSPs to stdpath for neovim
-      'williamboman/mason.nvim',
-      'williamboman/mason-lspconfig.nvim',
-
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
@@ -549,10 +545,6 @@ require('which-key').register {
   ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
 }
 
--- mason-lspconfig requires that these setup functions are called in this order
--- before setting up the servers.
-require('mason').setup()
-require('mason-lspconfig').setup()
 
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -580,7 +572,7 @@ local servers = {
   },
   pyright = {},
   rust_analyzer = {},
-  tsserver = {},
+  ts_ls = {},
   html = { filetypes = { 'html', 'php', 'twig', 'hbs' } },
 
   lua_ls = {
@@ -599,12 +591,15 @@ require('neodev').setup()
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
--- Ensure the servers above are installed
-local mason_lspconfig = require 'mason-lspconfig'
-
-mason_lspconfig.setup {
-  ensure_installed = vim.tbl_keys(servers),
-}
+-- Set up LSP servers directly with lspconfig
+for server_name, server_config in pairs(servers) do
+  require('lspconfig')[server_name].setup {
+    capabilities = capabilities,
+    on_attach = on_attach,
+    settings = server_config.settings or server_config,
+    filetypes = server_config.filetypes,
+  }
+end
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`

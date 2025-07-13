@@ -28,7 +28,7 @@ vim.opt.smartcase = true
 
 -- UI
 vim.opt.termguicolors = true
-vim.opt.scrolloff = 8
+vim.opt.scrolloff = 2
 vim.opt.signcolumn = "yes"
 vim.opt.colorcolumn = "80"
 
@@ -42,3 +42,5 @@ vim.opt.mouse = 'a'
 vim.opt.clipboard = 'unnamedplus'
 vim.opt.breakindent = true
 vim.opt.completeopt = 'menuone,noselect'
+vim.opt.cmdheight = 0
+vim.opt.showmode = false

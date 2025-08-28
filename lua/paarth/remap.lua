@@ -1,7 +1,7 @@
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 
-vim.keymap.set('n', '<Leader>ce', function() vim.cmd('Copilot enable') end)
-vim.keymap.set('n', '<Leader>cd', function() vim.cmd('Copilot disable') end)
+vim.keymap.set('n', '<Leader>se', function() vim.cmd('SupermavenStart') end)
+vim.keymap.set('n', '<Leader>sd', function() vim.cmd('SupermavenStop') end)
 vim.keymap.set("n", '<Leader>gi', function() vim.cmd('%! goimports') end)
 vim.keymap.set("n", '<Leader>fr', function() vim.lsp.buf.format() end)
 

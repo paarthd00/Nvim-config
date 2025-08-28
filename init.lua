@@ -22,12 +22,84 @@ require("paarth")
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
+  -- Java LSP support
+  {
+    'mfussenegger/nvim-jdtls',
+    ft = 'java',
+  },
  {'akinsho/git-conflict.nvim', version = "*", config = true},
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
   'sindrets/diffview.nvim',
   { "rose-pine/neovim", name = "rose-pine" },
+  -- Trouble for better diagnostics
+  {
+    "folke/trouble.nvim",
+    config = function()
+      require("trouble").setup({
+        icons = false,
+      })
+
+      vim.keymap.set("n", "<leader>tt", function()
+        require("trouble").toggle()
+      end)
+
+      vim.keymap.set("n", "[t", function()
+        require("trouble").next({skip_groups = true, jump = true});
+      end)
+
+      vim.keymap.set("n", "]t", function()
+        require("trouble").previous({skip_groups = true, jump = true});
+      end)
+    end
+  },
+  -- Undotree for visualizing undo history
+  {
+    "mbbill/undotree",
+    config = function()
+      vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+    end
+  },
+  -- Zen mode for distraction-free writing
+  {
+    "folke/zen-mode.nvim",
+    config = function()
+      vim.keymap.set("n", "<leader>zz", function()
+        require("zen-mode").setup {
+          window = {
+            width = 90,
+            options = {}
+          },
+        }
+        require("zen-mode").toggle()
+        vim.wo.wrap = false
+        vim.wo.number = true
+        vim.wo.rnu = true
+      end)
+    end
+  },
+  -- Cloak for hiding sensitive information
+  {
+    "laytan/cloak.nvim",
+    config = function()
+      require("cloak").setup({
+        enabled = true,
+        cloak_character = "*",
+        highlight_group = "Comment",
+        patterns = {
+          {
+            file_pattern = {
+              ".env*",
+              "wrangler.toml",
+              ".dev.vars",
+            },
+            cloak_pattern = "=.+"
+          },
+        },
+      })
+    end
+  },
   -- Utility plugins
   'mg979/vim-visual-multi',
   'chrisbra/csv.vim',
@@ -83,6 +155,9 @@ require('lazy').setup({
 
       -- Adds LSP completion capabilities
       'hrsh7th/cmp-nvim-lsp',
+      'hrsh7th/cmp-buffer',
+      'hrsh7th/cmp-path',
+      'hrsh7th/cmp-cmdline',
 
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
@@ -262,45 +337,37 @@ require('lazy').setup({
     },
   },
   {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    build = ":Copilot auth",
-    opts = {
-      panel = {
-        enabled = true,
-        auto_refresh = false,
-        keymap = {
-          jump_prev = "[[",
-          jump_next = "]]",
-          accept = "<CR>",
-          refresh = "gr",
-          open = "<M-CR>"
+    "supermaven-inc/supermaven-nvim",
+    config = function()
+      require("supermaven-nvim").setup({
+        keymaps = {
+          accept_suggestion = "<Tab>",
+          clear_suggestion = "<C-]>",
+          accept_word = "<C-j>",
         },
-        layout = {
-          position = "bottom", -- | top | left | right
-          ratio = 0.4
+        ignore_filetypes = { cpp = true },
+        color = {
+          suggestion_color = "#808080",  -- Gray color
+          cterm = 244,  -- Gray in terminal
         },
-      },
-      suggestion = {
-        enabled = true,
-        auto_trigger = true,
-        debounce = 75,
-        keymap = {
-          accept = "<C-y>",
-          accept_word = false,
-          accept_line = false,
-          next = "<C-n>",
-          prev = "<C-p>",
-          dismiss = "<C-]>",
-        },
-      },
-    },
+        log_level = "info", -- set to "off" to disable logging completely
+        disable_inline_completion = false, -- disables inline completion for use with cmp
+        disable_keymaps = false -- disables built in keymaps for more manual control
+      })
+      
+      -- Set custom highlight for Supermaven suggestions with transparency
+      vim.api.nvim_set_hl(0, "SupermavenSuggestion", { 
+        fg = "#606060",  -- Darker gray
+        italic = true,   -- Make it italic to distinguish from regular code
+      })
+    end,
   },
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
+      'nvim-treesitter/nvim-treesitter-context',
     },
     build = ':TSUpdate',
   },
@@ -426,12 +493,28 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'php', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'php', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'java', 'jsdoc' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = true,
+    sync_install = false,
 
-    highlight = { enable = true },
+    highlight = {
+      enable = true,
+      disable = function(lang, buf)
+        local max_filesize = 100 * 1024 -- 100 KB
+        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+        if ok and stats and stats.size > max_filesize then
+          vim.notify(
+            "File larger than 100KB treesitter disabled for performance",
+            vim.log.levels.WARN,
+            { title = "Treesitter" }
+          )
+          return true
+        end
+      end,
+      additional_vim_regex_highlighting = { "markdown" },
+    },
     indent = { enable = true },
     incremental_selection = {
       enable = true,
@@ -487,6 +570,21 @@ vim.defer_fn(function()
       },
     },
   }
+
+  -- Setup treesitter context
+  require('treesitter-context').setup {
+    enable = true,
+    multiwindow = false,
+    max_lines = 0,
+    min_window_height = 0,
+    line_numbers = true,
+    multiline_threshold = 20,
+    trim_scope = 'outer',
+    mode = 'cursor',
+    separator = nil,
+    zindex = 20,
+    on_attach = nil,
+  }
 end, 0)
 
 -- [[ Configure LSP ]]
@@ -541,8 +639,10 @@ require('which-key').register {
   ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
   ['<leader>h'] = { name = 'More git', _ = 'which_key_ignore' },
   ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-  ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
+  ['<leader>s'] = { name = '[S]earch / [S]upermaven', _ = 'which_key_ignore' },
+  ['<leader>t'] = { name = '[T]rouble / [T]ree', _ = 'which_key_ignore' },
   ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+  ['<leader>z'] = { name = '[Z]en mode', _ = 'which_key_ignore' },
 }
 
 
@@ -575,8 +675,7 @@ local servers = {
   ts_ls = {},
   html = { filetypes = { 'html', 'php', 'twig', 'hbs' } },
   
-  -- Java
-  jdtls = {},
+  -- Java (handled by nvim-jdtls plugin above)
   
   -- Angular/TypeScript (additional)
   angularls = {},
@@ -613,15 +712,110 @@ require('neodev').setup()
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
--- Set up LSP servers directly with lspconfig
+-- Setup LSP servers directly with lspconfig
 for server_name, server_config in pairs(servers) do
-  require('lspconfig')[server_name].setup {
-    capabilities = capabilities,
-    on_attach = on_attach,
-    settings = server_config.settings or server_config,
-    filetypes = server_config.filetypes,
-  }
+  -- Skip jdtls as it's handled by nvim-jdtls
+  if server_name ~= 'jdtls' then
+    require('lspconfig')[server_name].setup {
+      capabilities = capabilities,
+      on_attach = on_attach,
+      settings = server_config.settings or server_config,
+      filetypes = server_config.filetypes,
+    }
+  end
 end
+
+-- Setup jdtls with nvim-jdtls for better Java support
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'java',
+  callback = function()
+    local jdtls = require('jdtls')
+    
+    local root_dir = require('jdtls.setup').find_root({'.git', 'mvnw', 'gradlew', 'pom.xml', 'build.gradle'}) or vim.fn.getcwd()
+    local workspace_dir = vim.fn.stdpath('data') .. '/jdtls-workspace/' .. vim.fn.fnamemodify(root_dir, ':p:h:t')
+    
+    -- Use the existing jdtls installation
+    local launcher = vim.fn.glob('/home/p/.local/share/jdtls/plugins/org.eclipse.equinox.launcher_*.jar')
+    
+    local config = {
+      cmd = {
+        '/usr/lib/jvm/java-17-openjdk-amd64/bin/java',
+        '-Declipse.application=org.eclipse.jdt.ls.core.id1',
+        '-Dosgi.bundles.defaultStartLevel=4', 
+        '-Declipse.product=org.eclipse.jdt.ls.core.product',
+        '-Dlog.level=WARN',
+        '-Xmx1G',
+        '--add-modules=ALL-SYSTEM',
+        '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+        '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+        '-jar', launcher,
+        '-configuration', '/home/p/.local/share/jdtls/config_linux',
+        '-data', workspace_dir
+      },
+      
+      root_dir = root_dir,
+      capabilities = capabilities,
+      on_attach = function(client, bufnr)
+        -- Enable formatting
+        client.server_capabilities.documentFormattingProvider = true
+        -- Call the global on_attach
+        on_attach(client, bufnr)
+        
+        -- Java specific keybindings
+        local opts = { buffer = bufnr }
+        vim.keymap.set('n', '<leader>jo', jdtls.organize_imports, vim.tbl_extend('force', opts, { desc = 'Organize Imports' }))
+        vim.keymap.set('n', '<leader>jv', jdtls.extract_variable, vim.tbl_extend('force', opts, { desc = 'Extract Variable' }))
+        vim.keymap.set('n', '<leader>jc', jdtls.extract_constant, vim.tbl_extend('force', opts, { desc = 'Extract Constant' }))
+        vim.keymap.set('n', '<leader>jm', jdtls.extract_method, vim.tbl_extend('force', opts, { desc = 'Extract Method' }))
+      end,
+      
+      settings = {
+        java = {
+          eclipse = {
+            downloadSources = true,
+          },
+          configuration = {
+            updateBuildConfiguration = 'interactive',
+          },
+          maven = {
+            downloadSources = true,
+          },
+          implementationsCodeLens = {
+            enabled = true,
+          },
+          referencesCodeLens = {
+            enabled = true,
+          },
+          references = {
+            includeDecompiledSources = true,
+          },
+          format = {
+            enabled = true,
+            settings = {
+              profile = 'GoogleStyle',
+            },
+          },
+          signatureHelp = { enabled = true },
+          completion = {
+            favoriteStaticMembers = {
+              "org.junit.jupiter.api.Assertions.*",
+              "java.util.Objects.requireNonNull",
+              "java.util.Objects.requireNonNullElse",
+            },
+          },
+          sources = {
+            organizeImports = {
+              starThreshold = 9999,
+              staticStarThreshold = 9999,
+            },
+          },
+        },
+      },
+    }
+    
+    jdtls.start_or_attach(config)
+  end,
+})
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
@@ -636,19 +830,13 @@ cmp.setup {
       luasnip.lsp_expand(args.body)
     end,
   },
-  completion = {
-    completeopt = 'menu,menuone,noinsert',
-  },
   mapping = cmp.mapping.preset.insert {
-    ['<C-n>'] = cmp.mapping.select_next_item(),
     ['<C-p>'] = cmp.mapping.select_prev_item(),
+    ['<C-n>'] = cmp.mapping.select_next_item(),
+    ['<C-y>'] = cmp.mapping.confirm({ select = true }),
+    ['<C-Space>'] = cmp.mapping.complete(),
     ['<C-d>'] = cmp.mapping.scroll_docs(-4),
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete {},
-    ['<CR>'] = cmp.mapping.confirm {
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
-    },
     ['<Tab>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_next_item()
@@ -668,10 +856,13 @@ cmp.setup {
       end
     end, { 'i', 's' }),
   },
-  sources = {
+  sources = cmp.config.sources({
+    { name = "copilot", group_index = 2 },
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
-  },
+  }, {
+    { name = 'buffer' },
+  })
 }
 
 -- Colorscheme setup

@@ -95,6 +95,14 @@ require('lazy').setup({
     },
   },
 
+  {
+    -- Formatting and linting
+    'nvimtools/none-ls.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+  },
+
   -- Useful plugin to show you pending keybinds.
   { 'folke/which-key.nvim',  opts = {} },
   {
@@ -570,6 +578,30 @@ mason_lspconfig.setup {
     end,
   },
 }
+
+-- [[ Configure none-ls ]]
+local null_ls = require('null-ls')
+null_ls.setup({
+  sources = {
+    -- Formatting
+    null_ls.builtins.formatting.prettier.with({
+      filetypes = {
+        "javascript",
+        "typescript",
+        "css",
+        "scss",
+        "html",
+        "json",
+        "yaml",
+        "markdown",
+        "javascriptreact",
+        "typescriptreact",
+      },
+    }),
+    null_ls.builtins.formatting.stylua,
+  },
+  on_attach = on_attach,
+})
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`

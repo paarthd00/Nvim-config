@@ -28,7 +28,6 @@ require("paarth")
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
-  "zbirenbaum/copilot.lua",
   -- Git related plugins
   'mg979/vim-visual-multi',
   'chrisbra/csv.vim',
@@ -135,6 +134,12 @@ require('lazy').setup({
       end,
     },
   },
+  {
+    'f-person/git-blame.nvim',
+    opts = {
+      delay = 200,
+    },
+  },
 
   {
     -- Theme inspired by Atom
@@ -193,7 +198,7 @@ require('lazy').setup({
   },
   {
     "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
+    lazy = false,
     build = ":Copilot auth",
     opts = {
       panel = {
@@ -223,6 +228,9 @@ require('lazy').setup({
           prev = "<M-[>",
           dismiss = "<C-]>",
         },
+      },
+      filetypes = {
+        ["*"] = true,
       },
     },
   },
@@ -306,6 +314,7 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous dia
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<cr>', { desc = '[G]it [B]lame toggle' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`

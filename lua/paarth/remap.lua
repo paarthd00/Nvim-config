@@ -4,7 +4,7 @@ vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 vim.keymap.set('n', '<Leader>ce', function() vim.cmd('Copilot enable') end)
 vim.keymap.set('n', '<Leader>cd', function() vim.cmd('Copilot disable') end)
 vim.keymap.set("n", '<Leader>gi', function() vim.cmd('%! goimports') end)
-vim.keymap.set("n", '<Leader>fr', function() vim.cmd('Format') end)
+vim.keymap.set("n", '<Leader>fr', vim.lsp.buf.format)
 
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
